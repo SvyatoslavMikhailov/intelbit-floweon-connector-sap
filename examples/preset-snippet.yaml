@@ -1,0 +1,29 @@
+# Фрагмент preset.yaml с коннектором SAP (ADR-005, формат v1).
+# Бизнес-маппинги направления SAP↔Bitrix24 — в пресете b24-sap, не в коннекторе.
+
+connectors:
+  sap:
+    plugin: intelbit.river.connector.sap
+    config:
+      base_url: "${SAP_BASE_URL}"
+      auth:
+        user: "RIVER_TECH"
+        password: "${SAP_TECH_PASSWORD}"
+      vkorg: "8100"
+
+# SAP не пушит события → синхронизация pull по расписанию.
+flows:
+  - name: materials-sap-to-b24
+    source:
+      connector: sap
+      entity: material
+    schedule: "*/30 * * * *"
+    # mapping: ... (material → catalog.product Bitrix24 — в пресете)
+
+  - name: customer-b24-to-sap
+    source:
+      connector: bitrix24
+      entity: company
+    target:
+      connector: sap
+      entity: customer            # write через CMD_EI_API, дедуп по ИНН/КПП в маппинге

@@ -1,0 +1,49 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://intelbit.studio/river/connector-sap/config.schema.json",
+  "title": "SAP ECC Connector config",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["base_url"],
+  "properties": {
+    "base_url": {
+      "type": "string",
+      "format": "uri",
+      "description": "Корень SAP Gateway OData, напр. https://host/sap/opu/odata/sap"
+    },
+    "auth": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Basic-аутентификация технического пользователя (или ссылка на секрет)",
+      "properties": {
+        "user": { "type": "string" },
+        "password": { "type": "string" }
+      }
+    },
+    "services": {
+      "type": "object",
+      "additionalProperties": false,
+      "description": "Имена OData-сервисов SAP Gateway",
+      "properties": {
+        "materials": { "type": "string", "default": "ZMAT_SRV" },
+        "prices": { "type": "string", "default": "ZPRICE_SRV" },
+        "stock": { "type": "string", "default": "ZSTOCK_SRV" },
+        "customers": { "type": "string", "default": "ZCUST_SRV" }
+      }
+    },
+    "vkorg": {
+      "type": "string",
+      "description": "Сбытовая организация (БОВА — 8100)"
+    },
+    "timeout": {
+      "type": "number",
+      "default": 30,
+      "description": "Таймаут HTTP-запроса, сек"
+    },
+    "verify_ssl": {
+      "type": "boolean",
+      "default": true,
+      "description": "Проверять TLS-сертификат Gateway"
+    }
+  }
+}

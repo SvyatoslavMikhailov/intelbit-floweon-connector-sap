@@ -1,0 +1,27 @@
+---
+id: intelbit.river.connector.sap
+version: 0.1.0
+api_version: "1"
+plugin_type: connector
+name: SAP ECC Connector
+description: >-
+  Коннектор SAP ECC (OData V2) для Интелбит:Река — чтение номенклатуры, цен и
+  складских остатков; запись контрагента через CMD_EI_API (плоская сущность
+  Customer). Минимальный набор стандартных полей (open-core).
+author: ООО Интелбит
+license: Apache-2.0
+systems:
+  - sap-ecc-odata
+capabilities:
+  - read
+  - write
+entities:
+  - material
+  - price
+  - stock
+  - customer
+config_schema_path: ../config_schema.json
+entrypoint:
+  type: python
+  module: intelbit_river_connector_sap.connector
+  class: SapConnector
