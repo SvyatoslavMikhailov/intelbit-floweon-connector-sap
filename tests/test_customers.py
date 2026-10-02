@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import pytest
 
-from intelbit_river_connector_sap import SapConnector, SapODataError
+from intelbit_floweon_connector_sap import SapConnector, SapODataError
 
 pytestmark = pytest.mark.contract
 

@@ -4,11 +4,11 @@ from __future__ import annotations
 
 import httpx
 import pytest
-from river_sdk import ConnectorPlugin
-from river_sdk.connector import PluginContext
+from floweon_sdk import ConnectorPlugin
+from floweon_sdk.connector import PluginContext
 
-from intelbit_river_connector_sap import SapConnector
-from intelbit_river_connector_sap.connector import _MANIFEST
+from intelbit_floweon_connector_sap import SapConnector
+from intelbit_floweon_connector_sap.connector import _MANIFEST
 from tests.conftest import MOCK_BASE, make_connector
 from tests.mock_sap_gateway import create_app
 
@@ -18,7 +18,7 @@ def test_is_connector_plugin() -> None:
 
 
 def test_manifest_fields() -> None:
-    assert _MANIFEST.id == "intelbit.river.connector.sap"
+    assert _MANIFEST.id == "intelbit.floweon.connector.sap"
     assert _MANIFEST.plugin_type == "connector"
     assert _MANIFEST.license == "Apache-2.0"
     assert SapConnector.manifest is _MANIFEST

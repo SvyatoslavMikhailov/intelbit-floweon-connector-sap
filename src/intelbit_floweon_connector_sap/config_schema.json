@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://intelbit.studio/river/connector-sap/config.schema.json",
+  "$id": "https://intelbit.studio/floweon/connector-sap/config.schema.json",
   "title": "SAP ECC Connector config",
   "type": "object",
   "additionalProperties": false,

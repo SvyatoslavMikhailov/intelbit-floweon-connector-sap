@@ -1,6 +1,6 @@
-"""SapConnector — коннектор SAP ECC (OData V2) для Интелбит:Река (ADR-006).
+"""SapConnector — коннектор SAP ECC (OData V2) для Интелбит.Фловеон (ADR-006).
 
-Композиция доменов поверх SapODataClient. Контракт `ConnectorPlugin` из river-sdk:
+Композиция доменов поверх SapODataClient. Контракт `ConnectorPlugin` из floweon-sdk:
 lifecycle (init/start/stop/health_check/reload) + read/write.
 
 ==subscribe НЕТ== — SAP не пушит события; синхронизация pull (расписания — в пресете).
@@ -12,21 +12,21 @@ from __future__ import annotations
 from typing import Any
 
 import httpx
-from river_sdk import ConnectorPlugin, PluginManifest, PluginType
-from river_sdk.connector import PluginContext, PluginHealth
+from floweon_sdk import ConnectorPlugin, PluginManifest, PluginType
+from floweon_sdk.connector import PluginContext, PluginHealth
 
-from intelbit_river_connector_sap.domains.customers import CustomersDomain
-from intelbit_river_connector_sap.domains.materials import MaterialsDomain
-from intelbit_river_connector_sap.domains.prices import PricesDomain
-from intelbit_river_connector_sap.domains.stock import StockDomain
-from intelbit_river_connector_sap.odata.client import SapODataClient
+from intelbit_floweon_connector_sap.domains.customers import CustomersDomain
+from intelbit_floweon_connector_sap.domains.materials import MaterialsDomain
+from intelbit_floweon_connector_sap.domains.prices import PricesDomain
+from intelbit_floweon_connector_sap.domains.stock import StockDomain
+from intelbit_floweon_connector_sap.odata.client import SapODataClient
 
 _MANIFEST = PluginManifest(
-    id="intelbit.river.connector.sap",
+    id="intelbit.floweon.connector.sap",
     version="0.1.0",
     plugin_type=PluginType.CONNECTOR,
     name="SAP ECC Connector",
-    description="Коннектор SAP ECC (OData V2) для Интелбит:Река",
+    description="Коннектор SAP ECC (OData V2) для Интелбит.Фловеон",
     author="ООО Интелбит",
     license="Apache-2.0",
 )

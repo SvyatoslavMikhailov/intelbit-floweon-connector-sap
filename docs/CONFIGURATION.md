@@ -1,6 +1,6 @@
 # Конфигурация коннектора SAP
 
-Схема — `src/intelbit_river_connector_sap/config_schema.json`.
+Схема — `src/intelbit_floweon_connector_sap/config_schema.json`.
 
 | Параметр | Тип | Обяз. | Назначение |
 |----------|-----|:-----:|------------|
@@ -19,7 +19,7 @@
 ```yaml
 base_url: "https://sap-gw.bova.local/sap/opu/odata/sap"
 auth:
-  user: "RIVER_TECH"
+  user: "FLOWEON_TECH"
   password: "${SAP_TECH_PASSWORD}"
 services:
   materials: "ZMAT_SRV"
@@ -34,6 +34,6 @@ verify_ssl: true
 ## Допущения по стенду
 
 - SAP Gateway активирован, Z-сервисы (`ZMAT_SRV`/`ZPRICE_SRV`/`ZSTOCK_SRV`/`ZCUST_SRV`)
-  зарегистрированы и активны (см. companion-репо `intelbit-river-sap-ecc-extension`).
+  зарегистрированы и активны (см. companion-репо `intelbit-floweon-sap-ecc-extension`).
 - Технический пользователь имеет права `S_SERVICE` на эти сервисы.
 - Связь внутри LAN БОВА по HTTPS (D4). Для записи требуется CSRF-token.

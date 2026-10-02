@@ -1,11 +1,16 @@
-# CLAUDE.md — intelbit-river-connector-sap
+# CLAUDE.md — intelbit-floweon-connector-sap
 
 Гайд для Claude Code по этому репозиторию.
 
 ## Что это
 
-Коннектор SAP ECC (OData V2) для Интелбит:Река. Open-core: минимальный набор стандартных
-полей (Apache 2.0). Построен на `river-sdk` (контракт `ConnectorPlugin`, ADR-006).
+Коннектор SAP ECC (OData V2) для Интелбит.Фловеон. Open-core: минимальный набор стандартных
+полей (Apache 2.0). Построен на `floweon-sdk` (контракт `ConnectorPlugin`, ADR-006).
+
+## Документация
+
+Проектная документация — Obsidian, папка `4 Мои проекты/4-17 Интелбит Фловеон/`;
+промпты — `04 Промпты для Claude Code/`, статус — `04 Промпты для Claude Code/Статус разработки.md`.
 
 ## Архитектура
 
@@ -27,11 +32,11 @@
 
 - Резервирование (`Z_RESERVE_*`), поток «Заказ/Контракт» — дорожная карта.
 - Поля сверх минимума (KNVV-специфика БОВА) — платное расширение/пресет.
-- ABAP-логика — в companion-репо `intelbit-river-sap-ecc-extension` (скелеты).
+- ABAP-логика — в companion-репо `intelbit-floweon-sap-ecc-extension` (скелеты).
 
 ## Зависимости
 
-- `intelbit-river-sdk` — публичный git-тег `v0.1.0` (не path в приватный монорепо).
+- `intelbit-floweon-sdk` — публичный git-тег `v0.1.0` (не path в приватный монорепо).
 
 ## Команды
 

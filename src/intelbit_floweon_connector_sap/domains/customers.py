@@ -9,8 +9,8 @@ from __future__ import annotations
 
 from typing import Any
 
-from intelbit_river_connector_sap import fieldmaps
-from intelbit_river_connector_sap.odata.client import SapODataClient
+from intelbit_floweon_connector_sap import fieldmaps
+from intelbit_floweon_connector_sap.odata.client import SapODataClient
 
 
 class CustomersDomain:

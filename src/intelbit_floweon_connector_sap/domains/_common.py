@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from typing import Any
 
-from intelbit_river_connector_sap import fieldmaps
+from intelbit_floweon_connector_sap import fieldmaps
 
 
 def build_eq_filter(canon_filter: dict[str, Any], fmap: dict[str, str]) -> str | None:

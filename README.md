@@ -1,6 +1,6 @@
-# intelbit-river-connector-sap
+# intelbit-floweon-connector-sap
 
-Коннектор **SAP ECC** (OData V2 SAP Gateway) для платформы **Интелбит:Река**.
+Коннектор **SAP ECC** (OData V2 SAP Gateway) для платформы **Интелбит.Фловеон**.
 Open-core: минимальный набор стандартных полей (Apache 2.0). Расширение под специфику
 БОВА (доп. поля KNVV, резервирование) — отдельно. Коннектор **generic** и переиспользуем
 (сценарии `SAP↔Bitrix24` и `SAP↔1С ERP`).
@@ -15,19 +15,19 @@ Open-core: минимальный набор стандартных полей (
 `subscribe` нет — SAP не пушит события, синхронизация **pull** (расписания в пресете).
 
 ABAP-сторона (CDS + SEGW + Z-ФМ) — в companion-репозитории
-[`intelbit-river-sap-ecc-extension`](https://github.com/SvyatoslavMikhailov/intelbit-river-sap-ecc-extension).
+[`intelbit-floweon-sap-ecc-extension`](https://github.com/SvyatoslavMikhailov/intelbit-floweon-sap-ecc-extension).
 Канонический OData-контракт — `docs/ODATA_CONTRACT.md` (синхронен с extension).
 
 ## Конфигурация
 
-См. `src/intelbit_river_connector_sap/config_schema.json` и `docs/CONFIGURATION.md`.
+См. `src/intelbit_floweon_connector_sap/config_schema.json` и `docs/CONFIGURATION.md`.
 
 ```python
-from intelbit_river_connector_sap import SapConnector
+from intelbit_floweon_connector_sap import SapConnector
 
 connector = SapConnector({
     "base_url": "https://sap-gw.bova.local/sap/opu/odata/sap",
-    "auth": {"user": "RIVER_TECH", "password": "***"},
+    "auth": {"user": "FLOWEON_TECH", "password": "***"},
     "vkorg": "8100",
 })
 
@@ -52,5 +52,5 @@ uv run mypy
 uv run pytest
 ```
 
-`river-sdk` берётся из публичного git-тега (`intelbit-river-sdk @ v0.1.0`) — CI не требует
+`floweon-sdk` берётся из публичного git-тега (`intelbit-floweon-sdk @ v0.1.0`) — CI не требует
 доступа к приватным репозиториям.

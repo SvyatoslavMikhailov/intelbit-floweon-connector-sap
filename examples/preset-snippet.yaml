@@ -3,11 +3,11 @@
 
 connectors:
   sap:
-    plugin: intelbit.river.connector.sap
+    plugin: intelbit.floweon.connector.sap
     config:
       base_url: "${SAP_BASE_URL}"
       auth:
-        user: "RIVER_TECH"
+        user: "FLOWEON_TECH"
         password: "${SAP_TECH_PASSWORD}"
       vkorg: "8100"
 

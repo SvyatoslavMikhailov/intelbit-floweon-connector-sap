@@ -15,8 +15,8 @@ from urllib.parse import urlparse
 
 import httpx
 
-from intelbit_river_connector_sap.odata.csrf import fetch_csrf
-from intelbit_river_connector_sap.odata.errors import SapODataError
+from intelbit_floweon_connector_sap.odata.csrf import fetch_csrf
+from intelbit_floweon_connector_sap.odata.errors import SapODataError
 
 # Размер страницы client-driven пагинации ($top), если сервер не отдаёт __next.
 PAGE_SIZE = 100

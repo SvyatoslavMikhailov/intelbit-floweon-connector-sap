@@ -5,9 +5,9 @@ from __future__ import annotations
 import httpx
 import pytest
 
-from intelbit_river_connector_sap.odata.client import SapODataClient
-from intelbit_river_connector_sap.odata.csrf import fetch_csrf
-from intelbit_river_connector_sap.odata.errors import CsrfError, SapODataError
+from intelbit_floweon_connector_sap.odata.client import SapODataClient
+from intelbit_floweon_connector_sap.odata.csrf import fetch_csrf
+from intelbit_floweon_connector_sap.odata.errors import CsrfError, SapODataError
 from tests.conftest import MOCK_BASE
 from tests.mock_sap_gateway import CSRF_TOKEN, create_app
 

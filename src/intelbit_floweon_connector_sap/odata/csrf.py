@@ -9,7 +9,7 @@ from __future__ import annotations
 
 import httpx
 
-from intelbit_river_connector_sap.odata.errors import CsrfError
+from intelbit_floweon_connector_sap.odata.errors import CsrfError
 
 
 async def fetch_csrf(client: httpx.AsyncClient, url: str, headers: dict[str, str]) -> str:

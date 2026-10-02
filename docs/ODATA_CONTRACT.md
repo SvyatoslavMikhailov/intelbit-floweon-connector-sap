@@ -1,7 +1,7 @@
-# OData-контракт SAP ↔ Река (канонический)
+# OData-контракт SAP ↔ Фловеон (канонический)
 
 > Этот файл — **source of truth** OData-контракта. Его копия лежит в companion-репозитории
-> `intelbit-river-sap-ecc-extension/src/docs-contract/ODATA_CONTRACT.md` и должна быть
+> `intelbit-floweon-sap-ecc-extension/src/docs-contract/ODATA_CONTRACT.md` и должна быть
 > синхронна. Коннектор кодируется под контракт, мок его реализует, extension определяет в
 > SEGW/CDS. Минимальные стандартные поля (open-core).
 
@@ -27,7 +27,7 @@
 1. GET корня сервиса с заголовком `X-CSRF-Token: Fetch` → токен в заголовке ответа + cookie.
 2. POST в `CustomerSet` с `X-CSRF-Token: <токен>` и теми же cookies.
 
-## Канонические ключи Реки ↔ поля SAP
+## Канонические ключи Фловеона ↔ поля SAP
 
 | Канонический | SAP |
 |--------------|-----|

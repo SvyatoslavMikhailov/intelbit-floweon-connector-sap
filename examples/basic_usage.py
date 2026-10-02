@@ -8,7 +8,7 @@ from __future__ import annotations
 import asyncio
 import os
 
-from intelbit_river_connector_sap import SapConnector
+from intelbit_floweon_connector_sap import SapConnector
 
 
 async def main() -> None:
