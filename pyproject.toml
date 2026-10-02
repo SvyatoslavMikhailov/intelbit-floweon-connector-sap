@@ -5,7 +5,7 @@ build-backend = "hatchling.build"
 [project]
 name = "intelbit-floweon-connector-sap"
 description = "Коннектор SAP ECC (OData V2) для Интелбит.Фловеон"
-version = "0.1.0"
+version = "0.2.0"
 authors = [{ name = "Святослав Михайлов", email = "vceo@intelbit.ru" }]
 readme = "README.md"
 requires-python = ">=3.12"
@@ -15,6 +15,10 @@ dependencies = [
     "pyyaml>=6.0",
     "intelbit-floweon-sdk",
 ]
+
+# Резолв коннектора ядром по `type` из connectors/*.yaml пресета (floweon run, 4-17-24).
+[project.entry-points."floweon.connectors"]
+"intelbit.connector.sap" = "intelbit_floweon_connector_sap.connector:SapConnector"
 
 [project.optional-dependencies]
 dev = [
