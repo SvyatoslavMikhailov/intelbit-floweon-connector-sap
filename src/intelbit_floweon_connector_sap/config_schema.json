@@ -43,7 +43,16 @@
     "verify_ssl": {
       "type": "boolean",
       "default": true,
-      "description": "Проверять TLS-сертификат Gateway"
+      "description": "Проверять TLS-сертификат Gateway; false допустимо только вместе с allow_insecure_tls"
+    },
+    "ca_bundle": {
+      "type": "string",
+      "description": "Путь к PEM-файлу корпоративного CA; непустое значение имеет приоритет над verify_ssl, пустая строка = не задан"
+    },
+    "allow_insecure_tls": {
+      "type": "boolean",
+      "default": false,
+      "description": "Явное разрешение verify_ssl=false (LAN-стенд с самоподписанным сертификатом); пишет warning при старте"
     }
   }
 }

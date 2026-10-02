@@ -18,3 +18,7 @@ class SapODataError(RuntimeError):
 
 class CsrfError(SapODataError):
     """Не удалось получить X-CSRF-Token для модифицирующего запроса."""
+
+
+class ConfigurationError(ValueError):
+    """Конфигурация коннектора неполна или небезопасна (fail-closed на инициализации)."""

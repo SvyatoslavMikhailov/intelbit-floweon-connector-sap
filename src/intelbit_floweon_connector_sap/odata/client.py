@@ -9,14 +9,19 @@ Auth — Basic (технический пользователь) over HTTPS (LAN
 
 from __future__ import annotations
 
+import logging
+import ssl
 from collections.abc import AsyncIterator
+from pathlib import Path
 from typing import Any
 from urllib.parse import urlparse
 
 import httpx
 
 from intelbit_floweon_connector_sap.odata.csrf import fetch_csrf
-from intelbit_floweon_connector_sap.odata.errors import SapODataError
+from intelbit_floweon_connector_sap.odata.errors import ConfigurationError, SapODataError
+
+logger = logging.getLogger(__name__)
 
 # Размер страницы client-driven пагинации ($top), если сервер не отдаёт __next.
 PAGE_SIZE = 100
@@ -32,21 +37,29 @@ class SapODataClient:
         auth: tuple[str, str] | None = None,
         timeout: float = 30.0,
         verify_ssl: bool = True,
+        ca_bundle: str | None = None,
+        allow_insecure_tls: bool = False,
         page_size: int = PAGE_SIZE,
         _transport: httpx.AsyncBaseTransport | None = None,
     ) -> None:
         self._base_url = base_url.rstrip("/")
         self._auth = httpx.BasicAuth(*auth) if auth else None
         self._timeout = timeout
-        self._verify_ssl = verify_ssl
+        self._verify: str | bool = _resolve_verify(verify_ssl, ca_bundle, allow_insecure_tls)
         self._page_size = page_size
         # _transport — для contract-тестов через httpx.ASGITransport (FastAPI-мок).
         self._transport = _transport
 
     def _new_client(self) -> httpx.AsyncClient:
+        # Путь к CA → SSL-контекст (httpx объявил verify=<str> устаревшим).
+        verify: ssl.SSLContext | bool = (
+            ssl.create_default_context(cafile=self._verify)
+            if isinstance(self._verify, str)
+            else self._verify
+        )
         return httpx.AsyncClient(
             timeout=self._timeout,
-            verify=self._verify_ssl,
+            verify=verify,
             transport=self._transport,
             auth=self._auth,
         )
@@ -104,6 +117,38 @@ class SapODataClient:
                 json=payload,
             )
         return _parse_d(resp)
+
+
+def _resolve_verify(
+    verify_ssl: bool, ca_bundle: str | None, allow_insecure_tls: bool
+) -> str | bool:
+    """Значение ``verify`` для httpx: путь к корпоративному CA или флаг проверки.
+
+    ``ca_bundle`` (непустой) имеет приоритет над ``verify_ssl``; пустая строка
+    (``${SAP_CA_BUNDLE:-}`` без значения) трактуется как «не задан». Отключение
+    проверки TLS допускается только с явным ``allow_insecure_tls`` — для LAN-стенда
+    с самоподписанным сертификатом.
+
+    Raises:
+        ConfigurationError: файл ``ca_bundle`` не найден или ``verify_ssl=false``
+            без ``allow_insecure_tls``.
+    """
+    if ca_bundle:
+        if not Path(ca_bundle).is_file():
+            raise ConfigurationError(f"ca_bundle: файл корпоративного CA не найден: {ca_bundle}")
+        return ca_bundle
+    if not verify_ssl:
+        if not allow_insecure_tls:
+            raise ConfigurationError(
+                "verify_ssl=false запрещён без allow_insecure_tls=true "
+                "(или укажите ca_bundle с корпоративным CA)"
+            )
+        logger.warning(
+            "SAP OData: проверка TLS-сертификата ОТКЛЮЧЕНА (allow_insecure_tls=true) — "
+            "допустимо только для LAN-стенда"
+        )
+        return False
+    return True
 
 
 def _parse_d(resp: httpx.Response) -> dict[str, Any]:

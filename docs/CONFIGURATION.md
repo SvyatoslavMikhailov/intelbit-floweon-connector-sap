@@ -12,7 +12,9 @@
 | `services.customers` | string | нет | Сервис контрагентов (`ZCUST_SRV`) |
 | `vkorg` | string | нет | Сбытовая организация (БОВА — `8100`) |
 | `timeout` | number | нет | Таймаут HTTP-запроса, сек (по умолчанию 30) |
-| `verify_ssl` | boolean | нет | Проверять TLS-сертификат Gateway (по умолчанию true) |
+| `verify_ssl` | boolean | нет | Проверять TLS-сертификат Gateway (по умолчанию true); `false` — только с `allow_insecure_tls` |
+| `ca_bundle` | string | нет | Путь к PEM корпоративного CA; непустое значение приоритетнее `verify_ssl`, `""` = не задан |
+| `allow_insecure_tls` | boolean | нет | Явное разрешение `verify_ssl: false` (LAN-стенд, самоподписанный сертификат); warning при старте |
 
 ## Пример
 
@@ -29,7 +31,15 @@ services:
 vkorg: "8100"
 timeout: 30
 verify_ssl: true
+ca_bundle: "${SAP_CA_BUNDLE:-}"
 ```
+
+## TLS
+
+- По умолчанию сертификат Gateway проверяется по системному хранилищу.
+- Корпоративный CA: `ca_bundle: /etc/floweon/ca/bova-root.pem`. Файла нет → `ConfigurationError`.
+- `verify_ssl: false` без `allow_insecure_tls: true` → `ConfigurationError` (fail-closed).
+  С флагом — проверка отключается и при старте пишется warning; только для LAN-стенда.
 
 ## Допущения по стенду
 

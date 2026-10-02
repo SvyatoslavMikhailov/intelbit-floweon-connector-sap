@@ -62,6 +62,8 @@ class SapConnector(ConnectorPlugin):
             auth=auth,
             timeout=float(cfg.get("timeout", 30.0)),
             verify_ssl=bool(cfg.get("verify_ssl", True)),
+            ca_bundle=cfg.get("ca_bundle") or None,
+            allow_insecure_tls=bool(cfg.get("allow_insecure_tls", False)),
             _transport=self._transport,
         )
         services = {**_DEFAULT_SERVICES, **(cfg.get("services") or {})}
