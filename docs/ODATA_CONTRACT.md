@@ -22,6 +22,20 @@
 | `ZCUST_SRV` / `CustomerSet` (createEntity) | `Name, Land1, Ort01, Pstlz, Stras, Stcd1 (ИНН), Stcd2 (КПП), Bukrs, Vkorg, Ktokd` | Z-ФМ маппит в `CVI_EI_EXTERN` → `CMD_EI_API` (все ракурсы за вызов), дедуп по `Stcd1/Stcd2`, возврат `Kunnr` |
 | `ZCUST_SRV` / `CustomerSet?$filter=Stcd1 eq '...'` (GET) | поиск по ИНН/КПП | резолв дедупа на стороне пресета |
 
+### Режим записи (`WriteMode`)
+
+Коннектор (`write("customer", data)` без ключа `fields`) передаёт в `CustomerSet`
+поле `WriteMode`:
+
+| `_mode` записи | `WriteMode` | Поведение Z-ФМ |
+|----------------|-------------|----------------|
+| `create` (по умолчанию) | `C` | создать; дубль по `Stcd1`/`Stcd2` → ошибка `CUSTOMER_DUPLICATE` |
+| `update` | `U` | обновить контрагента `Kunnr` (обязателен; нет → `NOT_FOUND`) |
+
+Служебные ключи записи (`_mode`, `_idempotency_key`, любые `_*`) и значения `null`
+в SAP не передаются. Обязательные поля: `Name, Stcd1, Bukrs, Vkorg, Ktokd`
+(мок проверяет их и отвечает `REQUIRED_FIELD`).
+
 ## CSRF-flow (запись)
 
 1. GET корня сервиса с заголовком `X-CSRF-Token: Fetch` → токен в заголовке ответа + cookie.

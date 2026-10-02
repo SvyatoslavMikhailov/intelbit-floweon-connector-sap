@@ -80,6 +80,59 @@ def _seed() -> dict[str, Any]:
     }
 
 
+def _extended_seed() -> dict[str, Any]:
+    """Расширенная фикстура для e2e пресета b24-sap: 20 материалов, цены 8100 (+9000), остатки."""
+    db = _seed()
+    db["MaterialSet"] = [
+        {
+            "Matnr": str(n),
+            "Maktx": f"Материал {n}",
+            "Meins": "ST",
+            "Mtart": "FERT",
+            "Matkl": "M01",
+        }
+        for n in range(100, 120)
+    ]
+    prices: list[dict[str, Any]] = []
+    for n in range(100, 120):
+        prices.append(
+            {
+                "Matnr": str(n),
+                "Vkorg": "8100",
+                "Kschl": "PR00",
+                "Kbetr": f"{n - 90}.50",
+                "Konwa": "RUB",
+                "Kpein": "1",
+                "DatabFrom": "2026-01-01",
+            }
+        )
+        if n % 4 == 0:  # 100, 104, 108, 112, 116 — цены чужой сбытовой организации
+            prices.append(
+                {
+                    "Matnr": str(n),
+                    "Vkorg": "9000",
+                    "Kschl": "PR00",
+                    "Kbetr": "999.00",
+                    "Konwa": "RUB",
+                    "Kpein": "1",
+                    "DatabFrom": "2026-01-01",
+                }
+            )
+    db["PriceSet"] = prices
+    stock: list[dict[str, Any]] = []
+    for n in range(100, 120):
+        for lgort in range(1, n % 3 + 2):  # 1–3 строки на материал
+            stock.append(
+                {"Matnr": str(n), "Werks": "8100", "Lgort": f"000{lgort}", "Labst": str(10 * lgort)}
+            )
+    db["StockSet"] = stock
+    return db
+
+
+_REQUIRED_CUSTOMER = ("Name", "Stcd1", "Bukrs", "Vkorg", "Ktokd")
+REJECTED_INN = "0000000000"
+
+
 def _apply_filter(rows: list[dict[str, Any]], expr: str | None) -> list[dict[str, Any]]:
     if not expr:
         return rows
@@ -110,9 +163,14 @@ def _odata_error(code: str, message: str, status: int) -> JSONResponse:
     )
 
 
-def create_app() -> FastAPI:
+def create_app(extended: bool = False) -> FastAPI:
     app = FastAPI(title="SAP Gateway Mock", version="0.1.0")
-    db = _seed()
+    db = _extended_seed() if extended else _seed()
+
+    @app.get("/_state")
+    async def state() -> JSONResponse:
+        # Состояние мока целиком — для e2e-проверки содержимого записей.
+        return JSONResponse(db)
 
     @app.get(BASE + "/{service}/")
     async def service_root(service: str, request: Request) -> Response:
@@ -155,15 +213,28 @@ def create_app() -> FastAPI:
             return _odata_error("NOT_CREATABLE", f"{entityset} не поддерживает create", 405)
 
         payload: dict[str, Any] = await request.json()
-        if not payload.get("Name"):
-            return _odata_error("REQUIRED_FIELD", "Name обязателен", 400)
+        missing = [f for f in _REQUIRED_CUSTOMER if not payload.get(f)]
+        if missing:
+            return _odata_error("REQUIRED_FIELD", f"Обязательные поля: {', '.join(missing)}", 400)
 
         inn = payload.get("Stcd1")
+        if inn == REJECTED_INN:
+            return _odata_error("VALIDATION_ERROR", "ИНН отклонён SAP", 400)
+
+        mode = payload.pop("WriteMode", "C")
+        if mode == "U":
+            kunnr = payload.get("Kunnr")
+            existing = next((c for c in db["CustomerSet"] if c.get("Kunnr") == kunnr), None)
+            if existing is None:
+                return _odata_error("NOT_FOUND", f"Контрагент {kunnr} не найден", 404)
+            existing.update(payload)
+            return JSONResponse(status_code=200, content={"d": existing})
+
         if inn and any(c.get("Stcd1") == inn for c in db["CustomerSet"]):
             return _odata_error("CUSTOMER_DUPLICATE", f"Контрагент с ИНН {inn} уже существует", 400)
 
         new_kunnr = f"{len(db['CustomerSet']) + 1:07d}"
-        record = {"Kunnr": new_kunnr, **payload}
+        record = {**payload, "Kunnr": new_kunnr}
         db["CustomerSet"].append(record)
         return JSONResponse(status_code=201, content={"d": record})
 

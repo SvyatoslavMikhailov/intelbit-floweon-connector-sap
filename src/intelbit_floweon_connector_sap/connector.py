@@ -117,5 +117,11 @@ class SapConnector(ConnectorPlugin):
     async def write(self, entity: str, data: dict[str, Any]) -> dict[str, Any]:
         """Записать сущность. Поддержан только `customer` (через CMD_EI_API на стороне SAP)."""
         if entity == "customer":
-            return await self.customers.write(data.get("fields", data))
+            if "fields" in data:
+                return await self.customers.write(data["fields"])
+            # Каноническая запись шага workflow: служебные `_*` (режим, ключ
+            # идемпотентности) и пустые значения в SAP не уходят.
+            mode = str(data.get("_mode") or "create")
+            record = {k: v for k, v in data.items() if not k.startswith("_") and v is not None}
+            return await self.customers.write(record, mode)
         raise ValueError(f"Запись не поддержана для сущности: {entity!r}")

@@ -43,7 +43,10 @@ async def test_get_single_not_found() -> None:
 
 
 async def test_create_uses_csrf_token() -> None:
-    d = await _client().create("ZCUST_SRV/CustomerSet", {"Name": "Тест", "Stcd1": "7700000001"})
+    d = await _client().create(
+        "ZCUST_SRV/CustomerSet",
+        {"Name": "Тест", "Stcd1": "7700000001", "Bukrs": "8100", "Vkorg": "8100", "Ktokd": "KUNA"},
+    )
     assert d["Kunnr"] == "0000002"
 
 
