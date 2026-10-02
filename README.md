@@ -25,11 +25,13 @@ ABAP-сторона (CDS + SEGW + Z-ФМ) — в companion-репозитори�
 ```python
 from intelbit_floweon_connector_sap import SapConnector
 
-connector = SapConnector({
-    "base_url": "https://sap-gw.bova.local/sap/opu/odata/sap",
-    "auth": {"user": "FLOWEON_TECH", "password": "***"},
-    "vkorg": "8100",
-})
+connector = SapConnector(
+    {
+        "base_url": "https://sap-gw.bova.local/sap/opu/odata/sap",
+        "auth": {"user": "FLOWEON_TECH", "password": "***"},
+        "vkorg": "8100",
+    }
+)
 
 materials = await connector.read("material", {"filter": {"material_group": "FERT"}})
 dup = await connector.read("customer", {"inn": "7701234567", "kpp": "770101001"})
