@@ -2,6 +2,17 @@
 
 ## [Unreleased]
 
+## [0.2.1] — 2026-10-02
+
+### Изменено
+
+- SDK `intelbit-floweon-sdk` `v0.3.0` (PluginRunner с долгоживущим loop — состояние клиентского
+  rate limiter сохраняется между вызовами, фактический rps не замерялся; PluginEntrypoint в SDK) (4-17-25).
+- Запись контрагента без `fields`: служебные `_*` и `None` не уходят в SAP, режим `_mode`
+  (`create|update`) → поле OData `WriteMode` (`C|U`), для update обязателен `kunnr`.
+- Мок SAP Gateway: `create_app(extended=True)` (20 материалов, цены 8100/9000, остатки),
+  обязательные поля и `WriteMode` в `CustomerSet`, `GET /_state`.
+
 ## [0.2.0] — 2026-10-02
 
 ### Добавлено

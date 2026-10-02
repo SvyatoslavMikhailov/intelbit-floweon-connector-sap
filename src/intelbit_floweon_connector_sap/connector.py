@@ -23,7 +23,7 @@ from intelbit_floweon_connector_sap.odata.client import SapODataClient
 
 _MANIFEST = PluginManifest(
     id="intelbit.floweon.connector.sap",
-    version="0.2.0",
+    version="0.2.1",
     plugin_type=PluginType.CONNECTOR,
     name="SAP ECC Connector",
     description="Коннектор SAP ECC (OData V2) для Интелбит.Фловеон",
