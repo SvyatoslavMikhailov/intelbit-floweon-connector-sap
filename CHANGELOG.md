@@ -2,6 +2,13 @@
 
 ## [Unreleased]
 
+## [0.2.2] — 2026-10-02
+
+### Изменено
+
+- SDK `intelbit-floweon-sdk` `v0.3.1` (контракт NotifierPlugin.notify/status) — общая версия
+  SDK с ядром и коннектором Bitrix24 (4-17-27).
+
 ## [0.2.1] — 2026-10-02
 
 ### Изменено
