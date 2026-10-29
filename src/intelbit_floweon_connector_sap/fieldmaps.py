@@ -15,6 +15,19 @@ MATERIAL: dict[str, str] = {
     "unit": "Meins",
     "material_type": "Mtart",
     "material_group": "Matkl",
+    # 4-17-30: REF (старый номер материала), дата создания, сектор, данные сбыта 8100/10.
+    "ref": "Bismt",
+    "created_on": "Ersda",
+    "division": "Spart",
+    "sales_8100": "Sales8100",
+}
+
+# ZMAT_SRV / CurrentMaterialSet — «текущий материал» REF (D18): правило выбора в SAP.
+CURRENT_MATERIAL: dict[str, str] = {
+    "ref": "Bismt",
+    "matnr": "Matnr",
+    "created_on": "Ersda",
+    "name": "Maktx",
 }
 
 # ZPRICE_SRV / PriceSet (KONP / A-таблицы, сбыт. орг. 8100)
@@ -50,6 +63,19 @@ CUSTOMER: dict[str, str] = {
     "sales_org": "Vkorg",
     "account_group": "Ktokd",
 }
+
+# ZCUST_SRV / CustomerBankSet — банковские счета клиента (навигация ToBankDetails,
+# deep insert вместе с CustomerSet). Счёт — все 20 цифр: раскладку по KNBK-BANKN (18)
+# и BKONT/BKREF делает Z-ФМ SAP (TODO в sap-ecc-extension).
+CUSTOMER_BANK: dict[str, str] = {
+    "country": "Banks",
+    "bik": "Bankl",
+    "account": "Bankn",
+    "corr_account": "Korrs",
+    "bank_name": "Banka",
+    "main": "Xmain",
+}
+CUSTOMER_BANKS_NAV = "ToBankDetails"
 
 
 def to_canonical(raw: dict[str, Any], fmap: dict[str, str]) -> dict[str, Any]:

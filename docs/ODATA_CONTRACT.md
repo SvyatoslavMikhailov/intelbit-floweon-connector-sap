@@ -11,9 +11,18 @@
 
 | Сервис / EntitySet | Поля (минимум) | Источник SAP |
 |--------------------|----------------|--------------|
-| `ZMAT_SRV` / `MaterialSet` | `Matnr, Maktx, Meins, Mtart, Matkl` | MARA, MAKT |
+| `ZMAT_SRV` / `MaterialSet` | `Matnr, Maktx, Meins, Mtart, Matkl, Bismt, Ersda, Spart, Sales8100` | MARA, MAKT, MVKE (8100/10 → `Sales8100 = 'X'`) |
+| `ZMAT_SRV` / `CurrentMaterialSet` | `Bismt` (ключ), `Matnr, Ersda, Maktx` | CDS `ZCURMAT` — «текущий материал» REF (D18), одна строка на REF |
 | `ZPRICE_SRV` / `PriceSet` | `Matnr, Vkorg, Kschl, Kbetr, Konwa, Kpein, DatabFrom` | KONP / A-таблицы (Vkorg=8100) |
 | `ZSTOCK_SRV` / `StockSet` | `Matnr, Werks, Lgort, Labst` | MARD, MARC |
+
+### «Текущий материал» REF (D18, 4-17-30)
+
+REF = `MARA-BISMT`. Правило выбора — в SAP (CDS `ZFLW_CURMAT_D` → `ZFLW_CURMAT_M` →
+`ZCURMAT`, ABAP 7.50 без оконных функций): кандидаты — материалы со сбытом 8100/10 (MVKE)
+и сектором `MARA-SPART = '01'`, непустой BISMT; из них — max `ERSDA`, при равенстве —
+max `MATNR`. `LVORM` не учитывается. Исключения REF (`XXX`, `БП-…`) SAP **не** применяет —
+это настройка клиента в пресете. Фильтр: `$filter=Bismt eq '<REF>'`.
 
 ## Запись контрагента (POST, требует CSRF-token)
 
@@ -21,6 +30,11 @@
 |--------------------|------------------------|------------|
 | `ZCUST_SRV` / `CustomerSet` (createEntity) | `Name, Land1, Ort01, Pstlz, Stras, Stcd1 (ИНН), Stcd2 (КПП), Bukrs, Vkorg, Ktokd` | Z-ФМ маппит в `CVI_EI_EXTERN` → `CMD_EI_API` (все ракурсы за вызов), дедуп по `Stcd1/Stcd2`, возврат `Kunnr` |
 | `ZCUST_SRV` / `CustomerSet?$filter=Stcd1 eq '...'` (GET) | поиск по ИНН/КПП | резолв дедупа на стороне пресета |
+| `ZCUST_SRV` / `CustomerSet` + `ToBankDetails` (deep insert) | `CustomerBank`: `Banks, Bankl (БИК), Bankn (20 цифр), Korrs, Banka, Xmain` | KNBK; разбиение 20-значного счёта и отсутствующий BNKA — TODO расширения (`ZCUST_SRV.md`) |
+
+Банковские реквизиты коннектор проверяет до записи: БИК — 9 цифр, счёт и корр. счёт —
+20 цифр, иначе `bank_details_invalid` без обращения к SAP. Первый счёт — `Xmain = 'X'`,
+страна — `RU`.
 
 ### Режим записи (`WriteMode`)
 
@@ -31,6 +45,9 @@
 |----------------|-------------|----------------|
 | `create` (по умолчанию) | `C` | создать; дубль по `Stcd1`/`Stcd2` → ошибка `CUSTOMER_DUPLICATE` |
 | `update` | `U` | обновить контрагента `Kunnr` (обязателен; нет → `NOT_FOUND`) |
+
+Пресет b24-sap (решение БОВА D17, 4-17-30) пишет **только** `C`: клиент создаётся один раз,
+найденный по ИНН+КПП — только связывается. Расширение БОВА режим `U` не реализует.
 
 Служебные ключи записи (`_mode`, `_idempotency_key`, любые `_*`) и значения `null`
 в SAP не передаются. Обязательные поля: `Name, Stcd1, Bukrs, Vkorg, Ktokd`
@@ -69,6 +86,16 @@
 | `company_code` | `Bukrs` |
 | `account_group` | `Ktokd` |
 | `kunnr` | `Kunnr` |
+| `ref` | `Bismt` |
+| `created_on` | `Ersda` |
+| `division` | `Spart` |
+| `sales_8100` | `Sales8100` |
+| `bank_accounts[].country` | `ToBankDetails[].Banks` |
+| `bank_accounts[].bik` | `ToBankDetails[].Bankl` |
+| `bank_accounts[].account` | `ToBankDetails[].Bankn` |
+| `bank_accounts[].corr_account` | `ToBankDetails[].Korrs` |
+| `bank_accounts[].bank_name` | `ToBankDetails[].Banka` |
+| `bank_accounts[].main` | `ToBankDetails[].Xmain` |
 
 ## Ошибки
 

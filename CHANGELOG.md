@@ -2,6 +2,23 @@
 
 ## [Unreleased]
 
+## [0.3.0] — 2026-10-29
+
+Решения БОВА по пресету b24-sap (4-17-30).
+
+### Добавлено
+
+- Чтение `current_material` — `CurrentMaterialSet` (CDS расширения): текущий материал REF
+  по правилу D18 (сбыт 8100/10, сектор 01, max ERSDA, затем max MATNR); правило — в SAP.
+- Материал: поля `ref` (BISMT), `created_on` (ERSDA), `division` (SPART), `sales_8100`.
+- Клиент: банковские реквизиты `bank_accounts` → deep insert `ToBankDetails`
+  (`CustomerBankSet`); проверка БИК — 9 цифр, счёт и корр. счёт — 20 цифр
+  (`bank_details_invalid`), первый счёт — основной, страна RU.
+
+### Изменено
+
+- Мок SAP Gateway: материалы REF (в т.ч. XXX, БП-…), эмуляция CDS, `CustomerBankSet`.
+
 ## [0.2.2] — 2026-10-02
 
 ### Изменено

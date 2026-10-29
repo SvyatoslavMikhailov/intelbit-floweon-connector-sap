@@ -23,7 +23,7 @@ from intelbit_floweon_connector_sap.odata.client import SapODataClient
 
 _MANIFEST = PluginManifest(
     id="intelbit.floweon.connector.sap",
-    version="0.2.2",
+    version="0.3.0",
     plugin_type=PluginType.CONNECTOR,
     name="SAP ECC Connector",
     description="Коннектор SAP ECC (OData V2) для Интелбит.Фловеон",
@@ -103,6 +103,8 @@ class SapConnector(ConnectorPlugin):
             if matnr is not None:
                 return [await self.materials.get(str(matnr))]
             return await self.materials.list_records(filter_)
+        if entity == "current_material":
+            return await self.materials.current(filter_)
         if entity == "price":
             return await self.prices.list_records(filter_, params.get("changed_since"))
         if entity == "stock":

@@ -7,6 +7,7 @@
 
 from __future__ import annotations
 
+import re
 from typing import Any
 
 from intelbit_floweon_connector_sap import fieldmaps
@@ -14,6 +15,31 @@ from intelbit_floweon_connector_sap.odata.client import SapODataClient
 
 # Режим записи → значение поля WriteMode в CustomerSet (обрабатывает Z-ФМ SAP).
 WRITE_MODES: dict[str, str] = {"create": "C", "update": "U"}
+# Метка ошибки банковских реквизитов — для on_error_match пресета и текста задачи.
+BANK_DETAILS_INVALID = "bank_details_invalid"
+_DIGITS = {"bik": 9, "account": 20, "corr_account": 20}
+
+
+def bank_payload(accounts: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Счета клиента → строки CustomerBankSet (первый — основной); проверка форматов РФ.
+
+    Raises:
+        ValueError: БИК не 9 цифр, счёт/корр. счёт не 20 цифр (метка BANK_DETAILS_INVALID).
+    """
+    rows: list[dict[str, Any]] = []
+    for index, account in enumerate(accounts):
+        canon = {k: str(v).strip() for k, v in account.items() if v not in (None, "")}
+        for field, size in _DIGITS.items():
+            value = canon.get(field, "")
+            if (value or field != "corr_account") and not re.fullmatch(rf"\d{{{size}}}", value):
+                raise ValueError(
+                    f"{BANK_DETAILS_INVALID}: счёт {index + 1}: {field} должен содержать "
+                    f"{size} цифр, получено {value!r}"
+                )
+        row = {k: canon[k] for k in ("bik", "account", "corr_account", "bank_name") if k in canon}
+        row.update(country=canon.get("country") or "RU", main="X" if index == 0 else "")
+        rows.append(fieldmaps.to_sap(row, fieldmaps.CUSTOMER_BANK))
+    return rows
 
 
 class CustomersDomain:
@@ -31,7 +57,12 @@ class CustomersDomain:
         mode (`create`|`update`) передаётся в SAP полем ``WriteMode`` (`C`/`U`);
         для update обязателен ``kunnr``. None — прежний контракт без WriteMode.
         """
+        customer = dict(customer)
+        accounts = customer.pop("bank_accounts", None) or []
         payload = fieldmaps.to_sap(customer, fieldmaps.CUSTOMER)
+        if accounts:
+            # Deep insert: счета уходят в SAP одним запросом с клиентом (ToBankDetails).
+            payload[fieldmaps.CUSTOMER_BANKS_NAV] = bank_payload(list(accounts))
         if mode is not None:
             if mode not in WRITE_MODES:
                 raise ValueError(f"Неизвестный режим записи контрагента: {mode!r}")

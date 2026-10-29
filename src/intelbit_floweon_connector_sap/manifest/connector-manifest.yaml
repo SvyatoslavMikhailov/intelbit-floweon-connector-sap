@@ -17,6 +17,7 @@ capabilities:
   - write
 entities:
   - material
+  - current_material
   - price
   - stock
   - customer

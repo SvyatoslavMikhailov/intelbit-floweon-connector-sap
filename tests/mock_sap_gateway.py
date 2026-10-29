@@ -126,7 +126,70 @@ def _extended_seed() -> dict[str, Any]:
                 {"Matnr": str(n), "Werks": "8100", "Lgort": f"000{lgort}", "Labst": str(10 * lgort)}
             )
     db["StockSet"] = stock
+    # 4-17-30: материалы с REF (BISMT), датой создания, сектором и сбытом 8100/10.
+    db["MaterialSet"] += [_ref_material(*m) for m in REF_MATERIALS]
+    db["StockSet"] += [
+        {"Matnr": matnr, "Werks": "8100", "Lgort": "0001", "Labst": labst}
+        for matnr, labst in (("M1001", "5"), ("M1002", "7"), ("M2002", "3"), ("M4001", "9"))
+    ]
+    db["StockSet"].append({"Matnr": "M9001", "Werks": "8100", "Lgort": "0001", "Labst": "1"})
     return db
+
+
+# (Matnr, BISMT, ERSDA, SPART, сбыт 8100/10, наименование). Текущие: R-100 → M1002
+# (M1003 — другая сбытовая область, M1004 — сектор 02, хотя они новее); R-200 → M2002
+# (одна дата с M2001 — больший MATNR); R-400 → M4001 (REF нет в Bitrix24).
+# XXX, БП-… и пусто — не REF.
+REF_MATERIALS: list[tuple[str, str, str, str, bool, str]] = [
+    ("M1001", "R-100", "20240101", "01", True, "Зонд А (старый)"),
+    ("M1002", "R-100", "20250101", "01", True, "Зонд А"),
+    ("M1003", "R-100", "20260101", "01", False, "Зонд А (8200)"),
+    ("M1004", "R-100", "20260201", "02", True, "Зонд А (сектор 02)"),
+    ("M2001", "R-200", "20250505", "01", True, "Зонд Б-1"),
+    ("M2002", "R-200", "20250505", "01", True, "Зонд Б-2"),
+    ("M4001", "R-400", "20260301", "01", True, "Зонд Г"),
+    ("M9001", "XXX", "20260101", "01", True, "Заглушка"),
+    ("M9002", "БП-00001492", "20260101", "01", True, "Служебный"),
+    ("M9003", "", "20260101", "01", True, "Без REF"),
+]
+# CDS отсекает только пустой BISMT: исключения REF (XXX, БП-…) — правило пресета
+# (настройка клиента), поэтому CurrentMaterialSet их отдаёт.
+
+
+def _ref_material(
+    matnr: str, bismt: str, ersda: str, spart: str, sales: bool, name: str
+) -> dict[str, Any]:
+    return {
+        "Matnr": matnr,
+        "Maktx": name,
+        "Meins": "ST",
+        "Mtart": "FERT",
+        "Matkl": "M01",
+        "Bismt": bismt,
+        "Ersda": ersda,
+        "Spart": spart,
+        "Sales8100": sales,
+    }
+
+
+def current_materials(materials: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    """Эмуляция CDS «текущий материал» (D18): фильтр до агрегации, max ERSDA, max MATNR.
+
+    Исключения REF (XXX, БП-…) не применяются — их отсекает правило пресета."""
+    best: dict[str, dict[str, Any]] = {}
+    for m in materials:
+        ref = str(m.get("Bismt") or "")
+        if not ref.strip():
+            continue
+        if not m.get("Sales8100") or m.get("Spart") != "01":
+            continue
+        cur = best.get(ref)
+        if cur is None or (m["Ersda"], m["Matnr"]) > (cur["Ersda"], cur["Matnr"]):
+            best[ref] = m
+    return [
+        {"Bismt": ref, "Matnr": m["Matnr"], "Ersda": m["Ersda"], "Maktx": m["Maktx"]}
+        for ref, m in sorted(best.items())
+    ]
 
 
 _REQUIRED_CUSTOMER = ("Name", "Stcd1", "Bukrs", "Vkorg", "Ktokd")
@@ -197,6 +260,13 @@ def create_app(extended: bool = False) -> FastAPI:
             return JSONResponse({"d": found})
 
         entityset = entity_path
+        if entityset == "CurrentMaterialSet":
+            rows = _apply_filter(current_materials(db["MaterialSet"]), query.get("$filter"))
+            skip, top = (
+                int(query.get("$skip", 0)),
+                min(int(query.get("$top", MOCK_PAGE)), MOCK_PAGE),
+            )
+            return JSONResponse(_paginate(rows, skip, top, f"{BASE}/{service}/{entityset}", query))
         if entityset not in db:
             return _odata_error("INVALID_SET", f"Неизвестный EntitySet: {entityset}", 404)
         rows = _apply_filter(db[entityset], query.get("$filter"))
@@ -233,9 +303,18 @@ def create_app(extended: bool = False) -> FastAPI:
         if inn and any(c.get("Stcd1") == inn for c in db["CustomerSet"]):
             return _odata_error("CUSTOMER_DUPLICATE", f"Контрагент с ИНН {inn} уже существует", 400)
 
+        banks = payload.pop("ToBankDetails", None) or []
+        for bank in banks:
+            # Контракт: БИК 9 цифр, счёт 20 цифр целиком (раскладку по KNBK делает Z-ФМ).
+            if not re.fullmatch(r"\d{9}", str(bank.get("Bankl", ""))) or not re.fullmatch(
+                r"\d{20}", str(bank.get("Bankn", ""))
+            ):
+                return _odata_error("BANK_INVALID", f"Неверный банковский счёт: {bank}", 400)
+
         new_kunnr = f"{len(db['CustomerSet']) + 1:07d}"
         record = {**payload, "Kunnr": new_kunnr}
         db["CustomerSet"].append(record)
+        db.setdefault("CustomerBankSet", []).extend({**b, "Kunnr": new_kunnr} for b in banks)
         return JSONResponse(status_code=201, content={"d": record})
 
     return app

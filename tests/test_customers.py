@@ -157,13 +157,15 @@ async def _state(transport: httpx.ASGITransport) -> dict[str, Any]:
 async def test_extended_fixture() -> None:
     transport = httpx.ASGITransport(app=create_app(extended=True))
     state = await _state(transport)
-    assert [m["Matnr"] for m in state["MaterialSet"]] == [str(n) for n in range(100, 120)]
+    numeric = [m["Matnr"] for m in state["MaterialSet"] if "Bismt" not in m]
+    assert numeric == [str(n) for n in range(100, 120)]
     prices = state["PriceSet"]
     assert sum(1 for p in prices if p["Vkorg"] == "8100") == 20
     assert sum(1 for p in prices if p["Vkorg"] == "9000") == 5
     per_material = {
         m: sum(1 for s in state["StockSet"] if s["Matnr"] == m)
         for m in {s["Matnr"] for s in state["StockSet"]}
+        if m.isdigit()
     }
     assert len(per_material) == 20
     assert set(per_material.values()) <= {1, 2, 3}

@@ -7,7 +7,7 @@ from intelbit_floweon_connector_sap.odata.errors import (
     SapODataError,
 )
 
-__version__ = "0.2.2"
+__version__ = "0.3.0"
 
 __all__ = [
     "ConfigurationError",
