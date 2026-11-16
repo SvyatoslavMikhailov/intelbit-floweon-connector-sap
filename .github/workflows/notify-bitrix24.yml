@@ -1,0 +1,50 @@
+# Сторож CI (4-15-49 → 4-17-35, СМК-40-07 п.7): упавший workflow на main → задача в Bitrix24.
+# Существующие workflow не трогаем; список ниже — все workflow репозитория, которые
+# запускаются на main, кроме этого (иначе петля). «DCO Check» не включён: он только
+# на pull_request. Добавили workflow на main — допишите его имя сюда.
+# workflow_run и workflow_dispatch срабатывают только для файла на ветке по умолчанию.
+name: notify-bitrix24
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main]
+  workflow_dispatch:
+    inputs:
+      test_conclusion:
+        description: Смоук — тестовые данные, заголовок [CI-SMOKE]
+        type: choice
+        options: [failure, success]
+        default: failure
+
+permissions:
+  actions: read
+  contents: read
+
+concurrency:
+  group: notify-bitrix24-${{ github.event.workflow_run.name || 'smoke' }}
+  cancel-in-progress: false
+
+jobs:
+  notify:
+    # Только свой репозиторий и не pull_request: PR из форка с веткой «main» проходит
+    # фильтр branches. cancelled/skipped отсекаются здесь же.
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.head_repository.full_name == github.repository &&
+       github.event.workflow_run.event != 'pull_request' &&
+       contains(fromJSON('["failure","timed_out","startup_failure","success"]'), github.event.workflow_run.conclusion))
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - name: Задача / сообщение в Bitrix24
+        # Данные события скрипт читает сам из $GITHUB_EVENT_PATH (без ${{ }} в run: — инъекция).
+        run: bash .github/scripts/notify_bitrix24.sh
+        env:
+          BITRIX24_CI_WEBHOOK: ${{ secrets.BITRIX24_CI_WEBHOOK }}
+          BITRIX24_CI_GROUP_ID: ${{ vars.BITRIX24_CI_GROUP_ID }}
+          BITRIX24_CI_RESPONSIBLE_ID: ${{ vars.BITRIX24_CI_RESPONSIBLE_ID }}
+          GH_TOKEN: ${{ github.token }}
+          TEST_CONCLUSION: ${{ inputs.test_conclusion }}
