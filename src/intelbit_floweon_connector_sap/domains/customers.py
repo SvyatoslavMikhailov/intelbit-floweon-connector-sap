@@ -36,7 +36,9 @@ def bank_payload(accounts: list[dict[str, Any]]) -> list[dict[str, Any]]:
                     f"{BANK_DETAILS_INVALID}: счёт {index + 1}: {field} должен содержать "
                     f"{size} цифр, получено {value!r}"
                 )
-        row = {k: canon[k] for k in ("bik", "account", "corr_account", "bank_name") if k in canon}
+        row: dict[str, Any] = {
+            k: canon[k] for k in ("bik", "account", "corr_account", "bank_name") if k in canon
+        }
         row.update(country=canon.get("country") or "RU", main="X" if index == 0 else "")
         rows.append(fieldmaps.to_sap(row, fieldmaps.CUSTOMER_BANK))
     return rows
